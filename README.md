@@ -1,5 +1,11 @@
 # Puissance4_Rust
 
+Commandes utiles :
+    - Build le projet : cargo build
+    - Build + run le projet : cargo run
+    - Générer la doc : cargo doc
+    - Regénérer uniquement la doc du projet : cargo doc --package puissance_quatre
+
 Répartition modulaire
 
     +---------------------------------------------------------+

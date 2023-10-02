@@ -1,10 +1,10 @@
 pub struct Grid {
-    column: i32,
-    row: i32,
+    column: i8,
+    row: i8,
     tab: Vec<Vec<String>>,
 }
 
-pub fn grid_create(column_nb: i32, row_nb: i32) -> Grid {
+pub fn grid_create(column_nb: i8, row_nb: i8) -> Grid {
     let tab = vec![vec![" ".to_string(); column_nb as usize]; row_nb as usize];
     
     let game_grid = Grid {
@@ -16,18 +16,18 @@ pub fn grid_create(column_nb: i32, row_nb: i32) -> Grid {
     return game_grid;
 }
 
-/*fn grid_create(column: i32, row: i32) -> grid {
+/*fn grid_create(column: i8, row: i8) -> grid {
     let game_grid = grid{column, row};
     return game_grid;
 }*/
 
-pub fn grid_main(game_grid: Grid) {
+pub fn grid_main(game_grid: &Grid) {
     println!("Nombre de colonnes : {}", game_grid.column);
     println!("Nombre de lignes : {}", game_grid.row);
     grid_print(game_grid);
 }
 
-fn grid_print(game_grid: Grid) {
+fn grid_print(game_grid: &Grid) {
     println!("Tableau : ");
     println!("----------------------");
     for row in &game_grid.tab {

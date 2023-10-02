@@ -1,15 +1,17 @@
 // // Dans src/jeu/plateau.rs
 
+use std::io;
+
 // Déclaration d'une structure nommée PlateauDeJeu
 pub struct PlateauDeJeu {
-    grille: Vec<Vec<char>>,  // champ grille de type Vec<Vec<char>> donc un vecteur de vecteur de char
+    pub grille: Vec<Vec<char>>,  // champ grille de type Vec<Vec<char>> donc un vecteur de vecteur de char
 }
 
 // Implémentation de méthodes pour la structure PlateauDeJeu
 impl PlateauDeJeu {
     
     // Méthode statique nommée nouveau
-    pub fn nv_plateau() -> Self 
+    pub fn new_plateau() -> Self 
     { //Self indique qu'il retournera une instance de PlateauDeJeu
         
         // Initialisation d'un plateau vide avec 6 lignes et 7 colonnes
@@ -30,82 +32,48 @@ impl PlateauDeJeu {
             println!(); // Passage à la ligne pour afficher la prochaine ligne du plateau
         }
     }
-
-    pub fn verifier_victoire_ligne(&self, ligne: usize, joueur: char) -> bool {
-        let ligne_actuelle = &self.grille[ligne];
-    
-        // Vérifiez la séquence de jetons dans cette ligne
-        let mut count = 0;
-        for cellule in ligne_actuelle.iter() {
-            if *cellule == joueur {
-                count += 1;
-                if count == 4 {
-                    return true; // Victoire détectée dans cette ligne
-                }
-            } else {
-                count = 0; // Réinitialisez le compteur si une cellule différente est rencontrée
-            }
-        }
-    
-        false // Aucune victoire détectée
-    }
-
-    pub fn verifier_victoire_colonne(&self, colonne: usize, joueur: char) -> bool {
-        // Parcourez la colonne pour vérifier s'il y a 4 jetons consécutifs du joueur spécifié
-        let mut count = 0;
-        for ligne in &self.grille {
-            let cellule = ligne[colonne];
-            if cellule == joueur {
-                count += 1;
-                if count == 4 {
-                    return true; // Victoire détectée dans cette colonne
-                }
-            } else {
-                count = 0; // Réinitialisez le compteur si une cellule différente est rencontrée
-            }
-        }
-    
-        false // Aucune victoire détectée
-    }
-
-    pub fn verifier_victoire_diagonale(&self, joueur: char) -> bool {
-        let lignes = self.grille.len();
-        let colonnes = self.grille[0].len();
-
-        // Vérification de haut en bas (de gauche à droite)
-        for i in 0..lignes - 3 {
-            for j in 0..colonnes - 3 {
-                if self.grille[i][j] == joueur
-                    && self.grille[i + 1][j + 1] == joueur
-                    && self.grille[i + 2][j + 2] == joueur
-                    && self.grille[i + 3][j + 3] == joueur
-                {
-                    println!("Victoire détectée en diagonale (de gauche à droite) !");
-                    return true; // Victoire détectée
-                }
-            }
-        }
-
-        // Vérification de haut en bas (de droite à gauche)
-        for i in 0..lignes - 3 {
-            for j in 3..colonnes {
-                if self.grille[i][j] == joueur
-                    && self.grille[i + 1][j - 1] == joueur
-                    && self.grille[i + 2][j - 2] == joueur
-                    && self.grille[i + 3][j - 3] == joueur
-                {
-                    println!("Victoire détectée en diagonale (de droite à gauche) !");
-                    return true; // Victoire détectée
-                }
-            }
-        }
-
-        false
-    }
   
+    // Fonction pour demander à l'utilisateur dans quelle colonne placer le jeton
+    fn demander_colonne(&self) -> usize {
+        loop {
+            println!("Dans quelle colonne souhaitez-vous placer votre jeton (0-{}):", self.grille[0].len() - 1);
 
-    pub fn ajouter_jeton(&mut self, colonne: usize, joueur: char) -> Result<(), String> 
+            let mut input = String::new();
+
+            io::stdin()
+                .read_line(&mut input)
+                .expect("Échec de la lecture de l'entrée");
+
+            // Convertir l'entrée de l'utilisateur en un nombre
+            match input.trim().parse::<usize>() {
+                Ok(colonne) if colonne < self.grille[0].len() => {
+                    return colonne;
+                }
+                _ => {
+                    println!("Colonne invalide. Veuillez choisir une colonne valide.");
+                    continue;
+                }
+            }
+        }
+    }
+
+    // Méthode publique pour vérifier si le plateau est plein
+    pub fn est_plein(&self) -> bool {
+        for ligne in &self.grille {
+            for cellule in ligne {
+                if *cellule == ' ' {
+                    return false; // Il y a au moins une case vide
+                }
+            }
+        }
+        true // Le plateau est plein
+    }
+
+    pub fn ajouter_jeton(&mut self, joueur: char) -> Result<(), String> 
     {
+        // Demander au joueur dans quelle colonne placer le jeton
+        let colonne = self.demander_colonne();
+
         // Vérifiez que la colonne est valide
         if colonne >= self.grille[0].len() 
         {
@@ -119,19 +87,22 @@ impl PlateauDeJeu {
             {
                 self.grille[ligne][colonne] = joueur;
     
-                // Après avoir ajouté le jeton, vérifiez s'il y a une victoire dans cette ligne
-                if self.verifier_victoire_ligne(ligne, joueur) {
-                    println!("c'est gagné pour une ligne !");
-                    return Ok(());
-                }
-                else if self.verifier_victoire_colonne(colonne, joueur) {
-                    println!("c'est gagné pour une colonne !");
-                    return Ok(());
-                }
-                else if self.verifier_victoire_diagonale(joueur) {
-                    println!("c'est gagné pour une diagonale !");
-                    return Ok(());
-                }
+                // // Après avoir ajouté le jeton, vérifiez s'il y a une victoire dans cette ligne
+                // if Partie::verifier_victoire_ligne(&self.grille, ligne, joueur) {
+                //     println!("c'est gagné pour une ligne !");
+                //     partie.etat = EtatPartie::Gagnee; // Mettez à jour l'état de la partie en cas de victoire
+                //     return Ok(());
+                // }
+                // else if Partie::verifier_victoire_colonne(&self.grille, colonne, joueur) {
+                //     println!("c'est gagné pour une colonne !");
+                //     partie.etat = EtatPartie::Gagnee; // Mettez à jour l'état de la partie en cas de victoire
+                //     return Ok(());
+                // }
+                // else if Partie::verifier_victoire_diagonale(&self.grille, joueur) {
+                //     println!("c'est gagné pour une diagonale !");
+                //     partie.etat = EtatPartie::Gagnee; // Mettez à jour l'état de la partie en cas de victoire
+                //     return Ok(());
+                // }
     
                 // Si la colonne est pleine mais pas de victoire, renvoyez une erreur
                 return Ok(()); // Ou vous pouvez renvoyer un autre résultat en fonction de vos besoins

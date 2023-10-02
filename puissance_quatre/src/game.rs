@@ -32,8 +32,9 @@ impl Jeu for Game {
 pub fn game_create() -> Game {
     
     let game_grid = grid_create(GRID_COLUMN_NB, GRID_ROW_NB);
-    let player_1 = player_create(1, ((GRID_COLUMN_NB * GRID_ROW_NB) / 2).into());
-    let player_2 = player_create(2, ((GRID_COLUMN_NB * GRID_ROW_NB) / 2).into());
+    let piece_nb = (GRID_COLUMN_NB * GRID_ROW_NB) / 2;
+    let player_1 = player_create(1, (piece_nb).into());
+    let player_2 = player_create(2, (piece_nb).into());
     
     let game = Game {
         grid: game_grid,

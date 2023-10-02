@@ -29,13 +29,13 @@ pub fn grid_main(game_grid: &Grid) {
 
 fn grid_print(game_grid: &Grid) {
     println!("Tableau : ");
-    println!("----------------------");
+    println!("-----------------------------");
     for row in &game_grid.tab {
         for cell in row {
             print!("|");
-            print!("{} ", cell);
+            print!(" {} ", cell);
         }
         println!("|");
-        println!("----------------------"); // Nouvelle ligne après chaque ligne de la grille
+        println!("-----------------------------"); // Nouvelle ligne après chaque ligne de la grille
     }
 }

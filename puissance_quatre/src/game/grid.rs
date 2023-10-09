@@ -1,9 +1,16 @@
+/// Cette structure permet de créer une grille avec trois caractéristique : son nombre de colonnes, son nombre de lignes et son tableau contennant l'ensemble des jetons posés
 pub struct Grid {
     column: i8,
     row: i8,
     tab: Vec<Vec<String>>,
 }
 
+/// Cette fonction permet de créer un élément de type `Grid` et de le renvoyer
+/// 
+/// # Arguments
+///
+/// * `column_nb` - Nombre de colonnes de la grille
+/// * `row_nb` - Nombre de lignes de la grille
 pub fn grid_create(column_nb: i8, row_nb: i8) -> Grid {
     let tab = vec![vec![" ".to_string(); column_nb as usize]; row_nb as usize];
     

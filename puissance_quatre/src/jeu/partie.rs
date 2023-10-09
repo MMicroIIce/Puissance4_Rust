@@ -1,5 +1,6 @@
 use crate::jeu::plateau::PlateauDeJeu;
 use crate::jeu::joueur::Joueur;
+use std::time::{Duration, Instant};
 
 pub struct Partie<'a> {
     pub plateau: PlateauDeJeu,
@@ -107,6 +108,15 @@ impl<'a> Partie<'a> {
     // Fonction principale pour jouer la partie
     pub fn jouer(&mut self) {
 
+        let duree_max = Duration::new(300, 0);
+
+        let mut joueur1_instant = Instant::now();
+        let mut joueur1_duree = Duration::new(0, 0);
+        let mut joueur2_instant = Instant::now();
+        let mut joueur2_duree = Duration::new(0, 0);
+
+        let mut instant_now = Instant::now();
+
         self.joueur_actuel = self.joueur1;
 
         while !Partie::verifier_victoire(&self.plateau.grille, self.joueur_actuel.jeton)
@@ -116,7 +126,26 @@ impl<'a> Partie<'a> {
 
             match self.plateau.ajouter_jeton(self.joueur_actuel.jeton) {
                 Ok(_) => {
+
+                    instant_now = Instant::now();
+
                     // L'ajout du jeton a réussi
+                    if self.joueur_actuel == self.joueur1 {
+                        let duration = instant_now.duration_since(joueur1_instant);
+                        println!("Durée du joueur {} ce tour = {:?} secondes", self.joueur_actuel.nom, duration);
+                        joueur1_duree += duration;
+                        println!("Durée du joueur {} au total = {:?} secondes", self.joueur_actuel.nom, joueur1_duree);
+                    }
+                    else if self.joueur_actuel == self.joueur2 {
+                        let duration = instant_now.duration_since(joueur2_instant);
+                        println!("Durée du joueur {} = {:?} secondes", self.joueur_actuel.nom, duration);
+                        joueur2_duree += duration;
+                        println!("Durée du joueur {} au total = {:?} secondes", self.joueur_actuel.nom, joueur2_duree);
+                    }
+                    else {
+                        println!("Erreur pas de joueur courant !"); 
+                    };
+
                     if self.plateau.est_plein()
                     {
                         println!("Partie terminée. Match nul !");
@@ -127,10 +156,21 @@ impl<'a> Partie<'a> {
                         break; // Sortez de la boucle si la partie est terminée
                     }
 
-                    self.joueur_actuel = if self.joueur_actuel == self.joueur1 {
-                        self.joueur2
-                    } else {
-                        self.joueur1
+                    if joueur1_duree >= duree_max {
+                        println!("Partie terminée. {} n'a plus de temps !", self.joueur1.nom);
+                        break; // Sortez de la boucle si la partie est terminée
+                    }
+                    else if joueur2_duree >= duree_max {
+                        println!("Partie terminée. {} n'a plus de temps !", self.joueur2.nom);
+                        break; // Sortez de la boucle si la partie est terminée
+                    }
+
+                    if self.joueur_actuel == self.joueur1 {
+                        self.joueur_actuel = self.joueur2;
+                        joueur2_instant = Instant::now();
+                    } else if self.joueur_actuel == self.joueur2 {
+                        self.joueur_actuel = self.joueur1;
+                        joueur1_instant = Instant::now();
                     };
 
                 }

@@ -1,7 +1,7 @@
 // Dans src/jeu/joueur.rs
 
 // Déclaration d'un trait nommé JoueurTrait
-pub trait PlayerTrait 
+pub trait JoueurTrait 
 {
     fn get_name(&self) -> &str;
     fn get_token(&self) -> char;
@@ -9,32 +9,32 @@ pub trait PlayerTrait
 
 // Déclaration d'une structure nommée Player
 #[derive(PartialEq)] // Permettra de comparer 2 instances de la structure Player. Trouvé grâce à une IA (ChatGPT).
-pub struct Player 
+pub struct Joueur 
 {
-    pub name: String,
-    pub token: char,
+    pub nom: String,
+    pub jeton: char,
 }
 
 // Implémentation de méthodes pour la structure Player
-impl Player 
+impl Joueur 
 {
     // Constructeur pour créer un nouveau joueur
-    pub fn new_player(name: String, token: char) -> Self 
+    pub fn new_joueur(nom: String, jeton: char) -> Self 
     {
-        Player {name, token}
+        Joueur {nom, jeton}
     }
 }
 
 // Implémentation du trait PlayerTrait pour la structure Player
-impl PlayerTrait for Player 
+impl JoueurTrait for Joueur 
 {
     fn get_name(&self) -> &str 
     {
-        &self.name
+        &self.nom
     }
 
     fn get_token(&self) -> char 
     {
-        self.token
+        self.jeton
     }
 }

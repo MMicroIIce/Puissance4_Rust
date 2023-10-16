@@ -1,7 +1,8 @@
 use std::io;
+use std::time::{Duration, Instant};
 
 use crate::game::grid::Grid;
-use crate::game::player::LocalPlayer;
+use crate::game::player::{LocalPlayer, Player};
 
 pub struct Gameplay<'a> 
 {
@@ -135,6 +136,11 @@ impl<'a> Gameplay<'a>
     // Fonction principale pour jouer la partie
     pub fn play(&mut self) 
     {
+        let player_duration_max = Duration::new(30, 0);
+        let mut player_instant = Instant::now();
+
+        let mut instant_now;
+
         self.current_player = self.player1;
 
         let mut tokens_places_player1 = 0;
@@ -151,11 +157,17 @@ impl<'a> Gameplay<'a>
                     // L'ajout du token a réussi
                     Ok(_) => 
                     {
+                        instant_now = Instant::now();
                         if self.grid.ask_full() 
                         {
                             println!("Partie terminée. Match nul !");
                             break;
                         }
+
+                        let duration = instant_now.duration_since(player_instant);
+                        println!("Durée du joueur {} ce tour = {:?} secondes", self.current_player.name, duration);
+                        self.current_player.timer = self.current_player.get_timer() + duration;
+                        println!("Durée du joueur {} au total = {:?} secondes", self.current_player.name, self.current_player.timer);
 
                         if self.current_player == self.player1 
                         {
@@ -171,13 +183,19 @@ impl<'a> Gameplay<'a>
                             }
                         }
 
-                        self.current_player = if self.current_player == self.player1 
+                        if self.current_player.timer >= player_duration_max {
+                            println!("Partie terminée. {} n'a plus de temps !", self.current_player.name);
+                            break; // Sortez de la boucle si la partie est terminée
+                        }
+
+                        if self.current_player == self.player1 
                         {
-                            self.player2
+                            self.current_player = self.player2
                         } else 
                         {
-                            self.player1
+                            self.current_player = self.player1
                         };
+                        player_instant = Instant::now();
                     }
                     // L'ajout du token a échoué, affichez un message d'erreur
                     Err(err) => 

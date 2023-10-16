@@ -9,18 +9,20 @@ fn main() {
     let grid = game::grid::Grid::new_grid();
 
     // Créez deux joueurs
-    let joueur1 = game::player::LocalPlayer::new_player("Joueur 1".to_string(), 'X');
-    let joueur2 = game::player::LocalPlayer::new_player("Joueur 2".to_string(), 'O');
+    let player1 = game::player::LocalPlayer::new_player("Joueur 1".to_string(), 'X');
+    let player2 = game::player::LocalPlayer::new_player("Joueur 2".to_string(), 'O');
 
     println!();
-    println!("Le nom du joueur 1 est : {}", joueur1.get_name());
-    println!("Le jeton du joueur 1 est : {}", joueur1.get_token());
-    println!("Le nom du joueur 2 est : {}", joueur2.get_name());
-    println!("Le jeton du joueur 2 est : {}", joueur2.get_token());
+    println!("Le nom du joueur 1 est : {}", player1.get_name());
+    println!("Le jeton du joueur 1 est : {}", player1.get_token());
+    println!("Le timer du joueur 1 est initialisé à : {:?}", player1.get_timer());
+    println!("Le nom du joueur 2 est : {}", player2.get_name());
+    println!("Le jeton du joueur 2 est : {}", player2.get_token());
+    println!("Le timer du joueur 2 est initialisé à : {:?}", player2.get_timer());
     println!();
 
     // Créez une instance de Partie en utilisant les joueurs et le plateau créés
-    let mut gameplay = game::gameplay::Gameplay::new_gameplay(grid, &joueur1, &joueur2);
+    let mut gameplay = game::gameplay::Gameplay::new_gameplay(grid, &player1, &player2);
 
     // Commencez à jouer la partie
     gameplay.play();

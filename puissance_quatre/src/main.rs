@@ -1,4 +1,5 @@
 
+//TODO : uniformiser les commentaires dans tous les modules
 mod game;
 
 use crate::game::player::Player;

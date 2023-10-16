@@ -97,6 +97,7 @@ impl Grid
             return Err(String::from("Colonne invalide"));
         }
     
+        // TODO : vérifier si le for n'utilise pas d'indice
         // Parcourez la colonne de bas en haut pour trouver la première case vide
         for ligne in (0..self.grid.len()).rev() 
         {
@@ -112,7 +113,7 @@ impl Grid
         Err(String::from("Colonne pleine"))
     }
 
-    // Méthode publique pour vider le plateau et remettre des cases vides
+    // Méthode pour vider le plateau et remettre des cases vides
     pub fn empty_grid(&mut self) 
     {
         for ligne in &mut self.grid 

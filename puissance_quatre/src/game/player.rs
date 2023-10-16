@@ -1,7 +1,8 @@
 // src/jeu/player.rs
 
 // TODO : faire 3 implémentations de traits : LOCAL, ONLINE, IA
-// TODO : pour IA tu fais un truc rapide qui place un pion au pif
+// TODO : pour IA tu fais un truc rapide qui place un pion au pif, ne rien faire pour le ONLINE
+// TODO : permettre au joueur de choisir son nom
 
 // Déclaration d'un trait nommé JoueurTrait
 pub trait Player

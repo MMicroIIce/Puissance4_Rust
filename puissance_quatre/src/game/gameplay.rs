@@ -24,19 +24,16 @@ impl<'a> Gameplay<'a>
         }
     }
 
-    /* TODO : pour check les victory identifie le joueur plutôt, parce que là tu dis que tu identifies le joueur mais en vrai tu identifies le jeton
-     * comme ça tu as une gestion d'erreur qui fait que tu ne vérifies que des jetons possible et pas un caractères qui n'est pas normal
-     */
-
-    pub fn check_line_victory(grid: &Vec<Vec<char>>, player: char) -> bool 
+    pub fn check_line_victory(grid: &Vec<Vec<char>>, player: &'a LocalPlayer) -> bool 
     {
         // Vérifiez la séquence de tokens dans toutes les lignes
         for ligne in grid 
         {
+            // TODO : comprendre le .iter()
             let mut count = 0;
             for cellule in ligne.iter() 
             {
-                if *cellule == player 
+                if *cellule == player.token
                 {
                     count += 1;
                     if count == 4 
@@ -54,7 +51,7 @@ impl<'a> Gameplay<'a>
         false // Aucune victoire détectée dans toutes les lignes
     }
     
-    pub fn check_column_victory(grid: &Vec<Vec<char>>, player: char) -> bool 
+    pub fn check_column_victory(grid: &Vec<Vec<char>>, player: &'a LocalPlayer) -> bool 
     {
         let colonnes = grid[0].len();
     
@@ -65,7 +62,7 @@ impl<'a> Gameplay<'a>
             for ligne in grid 
             {
                 let cellule = ligne[colonne];
-                if cellule == player 
+                if cellule == player.token 
                 {
                     count += 1;
                     if count == 4 
@@ -83,9 +80,9 @@ impl<'a> Gameplay<'a>
         false // Aucune victoire détectée dans toutes les colonnes
     }
 
-    //TODO : faire attention aux dépassements du tableau, essayer sans indice ou mettre une gestion d'erreur à la fin si besoin.
+    // TODO : faire attention aux dépassements du tableau, essayer sans indice ou mettre une gestion d'erreur à la fin si besoin.
     // TODO : rajouter un com qui dit que Jouault a vu cette partie et est en accord avec celle ci
-    pub fn check_diagonal_victory(grid: &Vec<Vec<char>>, player: char) -> bool 
+    pub fn check_diagonal_victory(grid: &Vec<Vec<char>>, player: &'a LocalPlayer) -> bool 
     {
         let lignes = grid.len();
         let colonnes = grid[0].len();
@@ -95,10 +92,10 @@ impl<'a> Gameplay<'a>
         {
             for j in 0..colonnes - 3 
             {
-                if grid[i][j] == player
-                    && grid[i + 1][j + 1] == player
-                    && grid[i + 2][j + 2] == player
-                    && grid[i + 3][j + 3] == player
+                if grid[i][j] == player.token
+                    && grid[i + 1][j + 1] == player.token
+                    && grid[i + 2][j + 2] == player.token
+                    && grid[i + 3][j + 3] == player.token
                 {
                     println!("Victoire détectée en diagonale (de gauche à droite) !");
                     return true; // Victoire détectée
@@ -111,10 +108,10 @@ impl<'a> Gameplay<'a>
         {
             for j in 3..colonnes 
             {
-                if grid[i][j] == player
-                    && grid[i + 1][j - 1] == player
-                    && grid[i + 2][j - 2] == player
-                    && grid[i + 3][j - 3] == player
+                if grid[i][j] == player.token
+                    && grid[i + 1][j - 1] == player.token
+                    && grid[i + 2][j - 2] == player.token
+                    && grid[i + 3][j - 3] == player.token
                 {
                     println!("Victoire détectée en diagonale (de droite à gauche) !");
                     return true; // Victoire détectée
@@ -126,7 +123,7 @@ impl<'a> Gameplay<'a>
     }
 
     // Fonction pour vérifier la victoire
-    fn check_victory(grid: &Vec<Vec<char>>, player: char) -> bool 
+    fn check_victory(grid: &Vec<Vec<char>>, player: &'a LocalPlayer) -> bool 
     {
         // Vous pouvez réutiliser vos fonctions de vérification de victoire ici
         Gameplay::check_line_victory(grid, player)
@@ -135,7 +132,6 @@ impl<'a> Gameplay<'a>
             || Gameplay::check_diagonal_victory(grid, player)
     }
 
-    // TODO : faire 
     // Fonction principale pour jouer la partie
     pub fn play(&mut self) 
     {
@@ -145,16 +141,16 @@ impl<'a> Gameplay<'a>
 
         loop 
         {
-            while !Gameplay::check_victory(&self.grid.grid, self.current_player.token) 
+            while !Gameplay::check_victory(&self.grid.grid, self.current_player) 
             {
                 println!("Tour de {}", self.current_player.name);
                 self.grid.display_grid();
 
                 match self.grid.add_token(self.current_player.token) 
                 {
+                    // L'ajout du token a réussi
                     Ok(_) => 
                     {
-                        // L'ajout du token a réussi
                         if self.grid.ask_full() 
                         {
                             println!("Partie terminée. Match nul !");
@@ -167,7 +163,7 @@ impl<'a> Gameplay<'a>
                         }
                         if tokens_places_player1 >= 4 
                         {
-                            if Gameplay::check_victory(&self.grid.grid, self.current_player.token) 
+                            if Gameplay::check_victory(&self.grid.grid, self.current_player) 
                             {
                                 self.grid.display_grid();
                                 println!("Partie terminée. {} a gagné !", self.current_player.name);
@@ -183,9 +179,9 @@ impl<'a> Gameplay<'a>
                             self.player1
                         };
                     }
+                    // L'ajout du token a échoué, affichez un message d'erreur
                     Err(err) => 
                     {
-                        // L'ajout du token a échoué, affichez un message d'erreur
                         println!("Erreur : {}", err);
                     }
                 }

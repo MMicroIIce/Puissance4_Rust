@@ -1,0 +1,41 @@
+Le fichier main.rs sera le point d'entrée de votre programme.
+
+Le répertoire jeu contiendra les modules spécifiques à la logique du jeu.
+
+Le fichier jeu/mod.rs sera un fichier de module pour le module jeu. Il définira ce qui est visible à l'extérieur de ce module.
+
+Le fichier jeu/plateau.rs contiendra la définition du plateau de jeu et sa logique.
+
+Le fichier jeu/regles.rs contiendra les règles du jeu (détection de la victoire, gestion des coups, etc.).
+
+
+
+
+Ajouter la logique du jeu :
+
+Implémentez les règles du jeu Puissance 4, telles que la détection de la victoire, la vérification des coups légaux, etc.
+Développez des méthodes dans le module jeu/plateau.rs pour gérer l'ajout de jetons par les joueurs, la détection de la victoire et la fin de partie.
+
+Créer la structure du joueur :
+
+Créez une structure pour représenter un joueur (par exemple, Joueur) avec des propriétés telles que le nom, la couleur du jeton, etc.
+Ajoutez des méthodes pour permettre aux joueurs de jouer leur tour.
+
+Mettre en place les tours de jeu :
+
+Implémentez la logique pour permettre aux joueurs de jouer à tour de rôle.
+Gérez les actions des joueurs, telles que la sélection de la colonne où placer un jeton.
+
+Afficher le plateau après chaque coup :
+
+Après chaque coup, appelez la méthode afficher_plateau pour afficher le plateau mis à jour dans la console.
+Vous pouvez également ajouter un petit message indiquant le nom du joueur dont c'est le tour.
+
+Gérer la fin de partie :
+
+Implémentez la logique pour détecter quand un joueur gagne ou quand il y a un match nul.
+Proposez de rejouer ou de quitter le jeu à la fin de la partie.
+
+Ajouter des fonctionnalités avancées (facultatif) :
+
+Si vous le souhaitez, vous pouvez ajouter des fonctionnalités avancées telles qu'un timer, une interface graphique, un mode multijoueur en ligne, etc.

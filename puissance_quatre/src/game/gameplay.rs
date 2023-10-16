@@ -4,37 +4,51 @@ use std::time::{Duration, Instant};
 use crate::game::grid::Grid;
 use crate::game::player::{LocalPlayer, Player};
 
-pub struct Gameplay<'a> 
+pub struct Gameplay
 {
     pub grid: Grid,
-    pub player1: &'a LocalPlayer,
-    pub player2: &'a LocalPlayer,
-    pub current_player: &'a LocalPlayer, // Utilisez une référence mutable pour suivre le player actuel
+    pub player1: LocalPlayer,
+    pub player2: LocalPlayer,
+    pub current_player: CurrentPlayer, // Utilisez une référence mutable pour suivre le player actuel
+}
+pub enum CurrentPlayer
+{
+    Player1,
+    Player2,
 }
 
-impl<'a> Gameplay<'a> 
+impl Gameplay
 {
-    pub fn new_gameplay(grid: Grid, player1: &'a LocalPlayer, player2: &'a LocalPlayer) -> Self 
+    pub fn new_gameplay(grid: Grid, player1: LocalPlayer, player2: LocalPlayer) -> Self 
     {
         Gameplay 
         {
             grid,
             player1,
             player2,
-            current_player: player1, // Initialisez le player actuel avec player1
+            current_player: CurrentPlayer::Player1, // Initialisez le player actuel avec player1
         }
     }
 
-    pub fn check_line_victory(grid: &Vec<Vec<char>>, player: &'a LocalPlayer) -> bool 
+    pub fn get_player(&self, player: CurrentPlayer) -> &LocalPlayer
+    {
+        match player {
+            CurrentPlayer::Player1 => &self.player1,
+            CurrentPlayer::Player2 => &self.player2,
+        }
+
+    }
+
+    pub fn check_line_victory(&self, player: CurrentPlayer) -> bool 
     {
         // Vérifiez la séquence de tokens dans toutes les lignes
-        for ligne in grid 
+        for ligne in self.grid.grid 
         {
             // TODO : comprendre le .iter()
             let mut count = 0;
             for cellule in ligne.iter() 
             {
-                if *cellule == player.token
+                if *cellule == self.get_player(player).token
                 {
                     count += 1;
                     if count == 4 
@@ -52,18 +66,18 @@ impl<'a> Gameplay<'a>
         false // Aucune victoire détectée dans toutes les lignes
     }
     
-    pub fn check_column_victory(grid: &Vec<Vec<char>>, player: &'a LocalPlayer) -> bool 
+    pub fn check_column_victory(&self, player: CurrentPlayer) -> bool 
     {
-        let colonnes = grid[0].len();
+        let colonnes = self.grid.grid[0].len();
     
         // Parcourez toutes les colonnes pour vérifier s'il y a 4 tokens consécutifs du player spécifié
         for colonne in 0..colonnes 
         {
             let mut count = 0;
-            for ligne in grid 
+            for ligne in self.grid.grid 
             {
                 let cellule = ligne[colonne];
-                if cellule == player.token 
+                if cellule == self.get_player(player).token 
                 {
                     count += 1;
                     if count == 4 
@@ -83,20 +97,20 @@ impl<'a> Gameplay<'a>
 
     // TODO : faire attention aux dépassements du tableau, essayer sans indice ou mettre une gestion d'erreur à la fin si besoin.
     // TODO : rajouter un com qui dit que Jouault a vu cette partie et est en accord avec celle ci
-    pub fn check_diagonal_victory(grid: &Vec<Vec<char>>, player: &'a LocalPlayer) -> bool 
+    pub fn check_diagonal_victory(&self, player: CurrentPlayer) -> bool 
     {
-        let lignes = grid.len();
-        let colonnes = grid[0].len();
+        let lignes = self.grid.grid.len();
+        let colonnes = self.grid.grid[0].len();
 
         // Vérification de haut en bas (de gauche à droite)
         for i in 0..lignes - 3 
         {
             for j in 0..colonnes - 3 
             {
-                if grid[i][j] == player.token
-                    && grid[i + 1][j + 1] == player.token
-                    && grid[i + 2][j + 2] == player.token
-                    && grid[i + 3][j + 3] == player.token
+                if self.grid.grid[i][j] == self.get_player(player).token
+                    && self.grid.grid[i + 1][j + 1] == self.get_player(player).token
+                    && self.grid.grid[i + 2][j + 2] == self.get_player(player).token
+                    && self.grid.grid[i + 3][j + 3] == self.get_player(player).token
                 {
                     println!("Victoire détectée en diagonale (de gauche à droite) !");
                     return true; // Victoire détectée
@@ -109,10 +123,10 @@ impl<'a> Gameplay<'a>
         {
             for j in 3..colonnes 
             {
-                if grid[i][j] == player.token
-                    && grid[i + 1][j - 1] == player.token
-                    && grid[i + 2][j - 2] == player.token
-                    && grid[i + 3][j - 3] == player.token
+                if self.grid.grid[i][j] == self.get_player(player).token
+                    && self.grid.grid[i + 1][j - 1] == self.get_player(player).token
+                    && self.grid.grid[i + 2][j - 2] == self.get_player(player).token
+                    && self.grid.grid[i + 3][j - 3] == self.get_player(player).token
                 {
                     println!("Victoire détectée en diagonale (de droite à gauche) !");
                     return true; // Victoire détectée
@@ -124,13 +138,13 @@ impl<'a> Gameplay<'a>
     }
 
     // Fonction pour vérifier la victoire
-    fn check_victory(grid: &Vec<Vec<char>>, player: &'a LocalPlayer) -> bool 
+    fn check_victory(&self, player: CurrentPlayer) -> bool 
     {
         // Vous pouvez réutiliser vos fonctions de vérification de victoire ici
-        Gameplay::check_line_victory(grid, player)
-            || Gameplay::check_column_victory(grid, player)
-            || Gameplay::check_column_victory(grid, player)
-            || Gameplay::check_diagonal_victory(grid, player)
+        Gameplay::check_line_victory(self, player)
+            || Gameplay::check_column_victory(self, player)
+            || Gameplay::check_column_victory(self, player)
+            || Gameplay::check_diagonal_victory(self, player)
     }
 
     // Fonction principale pour jouer la partie
@@ -141,18 +155,18 @@ impl<'a> Gameplay<'a>
 
         let mut instant_now;
 
-        self.current_player = self.player1;
+        self.current_player = CurrentPlayer::Player1;
 
         let mut tokens_places_player1 = 0;
 
         loop 
         {
-            while !Gameplay::check_victory(&self.grid.grid, self.current_player) 
+            while !Gameplay::check_victory(&self, self.current_player) 
             {
-                println!("Tour de {}", self.current_player.name);
+                println!("Tour de {}", self.get_player(self.current_player).name);
                 self.grid.display_grid();
 
-                match self.grid.add_token(self.current_player.token) 
+                match self.grid.add_token(self.get_player(self.current_player).token) 
                 {
                     // L'ajout du token a réussi
                     Ok(_) => 
@@ -165,35 +179,35 @@ impl<'a> Gameplay<'a>
                         }
 
                         let duration = instant_now.duration_since(player_instant);
-                        println!("Durée du joueur {} ce tour = {:?} secondes", self.current_player.name, duration);
-                        self.current_player.timer = self.current_player.get_timer() + duration;
-                        println!("Durée du joueur {} au total = {:?} secondes", self.current_player.name, self.current_player.timer);
+                        println!("Durée du joueur {} ce tour = {:?} secondes", self.get_player(self.current_player).name, duration);
+                        self.get_player(self.current_player).timer = self.get_player(self.current_player).get_timer() + duration;
+                        println!("Durée du joueur {} au total = {:?} secondes", self.get_player(self.current_player).name, self.get_player(self.current_player).timer);
 
-                        if self.current_player == self.player1 
+                        if self.get_player(self.current_player) == &self.player1 
                         {
                             tokens_places_player1 += 1;
                         }
                         if tokens_places_player1 >= 4 
                         {
-                            if Gameplay::check_victory(&self.grid.grid, self.current_player) 
+                            if Gameplay::check_victory(&self, self.current_player) 
                             {
                                 self.grid.display_grid();
-                                println!("Partie terminée. {} a gagné !", self.current_player.name);
+                                println!("Partie terminée. {} a gagné !", self.get_player(self.current_player).name);
                                 break;
                             }
                         }
 
-                        if self.current_player.timer >= player_duration_max {
-                            println!("Partie terminée. {} n'a plus de temps !", self.current_player.name);
+                        if self.get_player(self.current_player).timer >= player_duration_max {
+                            println!("Partie terminée. {} n'a plus de temps !", self.get_player(self.current_player).name);
                             break; // Sortez de la boucle si la partie est terminée
                         }
 
-                        if self.current_player == self.player1 
+                        if self.get_player(self.current_player) == &self.player1 
                         {
-                            self.current_player = self.player2
+                            self.current_player = CurrentPlayer::Player2
                         } else 
                         {
-                            self.current_player = self.player1
+                            self.current_player = CurrentPlayer::Player1
                         };
                         player_instant = Instant::now();
                     }

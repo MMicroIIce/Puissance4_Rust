@@ -22,7 +22,7 @@ fn main() {
     println!();
 
     // Créez une instance de Partie en utilisant les joueurs et le plateau créés
-    let mut gameplay = game::gameplay::Gameplay::new_gameplay(grid, &player1, &player2);
+    let mut gameplay = game::gameplay::Gameplay::new_gameplay(grid, player1, player2);
 
     // Commencez à jouer la partie
     gameplay.play();

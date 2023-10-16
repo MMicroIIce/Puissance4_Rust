@@ -11,6 +11,8 @@ pub struct Gameplay
     pub player2: LocalPlayer,
     pub current_player: CurrentPlayer, // Utilisez une référence mutable pour suivre le player actuel
 }
+
+#[derive(Copy, Clone)]
 pub enum CurrentPlayer
 {
     Player1,
@@ -39,10 +41,19 @@ impl Gameplay
 
     }
 
+    pub fn get_player_mut(&mut self, player: CurrentPlayer) -> &mut LocalPlayer
+    {
+        match player {
+            CurrentPlayer::Player1 => &mut self.player1,
+            CurrentPlayer::Player2 => &mut self.player2,
+        }
+
+    }
+
     pub fn check_line_victory(&self, player: CurrentPlayer) -> bool 
     {
         // Vérifiez la séquence de tokens dans toutes les lignes
-        for ligne in self.grid.grid 
+        for ligne in &self.grid.grid 
         {
             // TODO : comprendre le .iter()
             let mut count = 0;
@@ -74,7 +85,7 @@ impl Gameplay
         for colonne in 0..colonnes 
         {
             let mut count = 0;
-            for ligne in self.grid.grid 
+            for ligne in &self.grid.grid 
             {
                 let cellule = ligne[colonne];
                 if cellule == self.get_player(player).token 
@@ -180,7 +191,7 @@ impl Gameplay
 
                         let duration = instant_now.duration_since(player_instant);
                         println!("Durée du joueur {} ce tour = {:?} secondes", self.get_player(self.current_player).name, duration);
-                        self.get_player(self.current_player).timer = self.get_player(self.current_player).get_timer() + duration;
+                        self.get_player_mut(self.current_player).timer = self.get_player(self.current_player).get_timer() + duration;
                         println!("Durée du joueur {} au total = {:?} secondes", self.get_player(self.current_player).name, self.get_player(self.current_player).timer);
 
                         if self.get_player(self.current_player) == &self.player1 

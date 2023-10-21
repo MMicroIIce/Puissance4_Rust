@@ -1,9 +1,9 @@
 /* Module player.rs
  * 
  * TODO : 
- * - répartir plus intelligemment les fonctions dans les modules
  * - tout commenter
  * - faire de la gestion d'erreur
+ * - Simplifier, corriger, donner du sens (surtout d'un aspect modulable)
  * */
 
 mod game;
@@ -15,9 +15,9 @@ fn main() {
     let grid = game::grid::Grid::new_grid();
 
     // Créez deux joueurs
-    let player1 = game::player::LocalPlayer::new_player("Joueur 1".to_string(), 'X');
-    let player2 = game::player::LocalPlayer::new_player("Joueur 2".to_string(), 'O');
-    let ia = game::player::IAPlayer::new_ia_player("IA".to_string(), 'W');
+    let player1 = game::player::LocalPlayer::new_local_player("Joueur 1".to_string(), 'X');
+    let player2 = game::player::LocalPlayer::new_local_player("Joueur 2".to_string(), 'O');
+    let ia = game::player::IAPlayer::new_ia_player("IA".to_string(), 'O');
     
 
     println!();

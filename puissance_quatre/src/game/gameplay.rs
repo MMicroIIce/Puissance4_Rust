@@ -2,10 +2,9 @@
  * 
  * TODO : 
  * - faire un timer
- * - Pour la possibilité de rejouer, fait en sorte qu'on soit obligé de mettre "non" et pas n'importe quoi
  * - tout commenter
  * - faire de la gestion d'erreur
- * - faire en sorte que le pion de l'IA soit O et pas W
+ * - Simplifier, corriger, donner du sens (surtout d'un aspect modulable)
  * */
 
 use std::io;
@@ -176,7 +175,7 @@ impl Gameplay
     {
         println!("Choisissez un mode de jeu :");
         println!("Ecrivez 'local' pour une partie Local player vs Local player");
-        println!("Ecrivez 'IA' pour une partie Local player vs IA player");
+        println!("Ecrivez 'ia' pour une partie Local player vs IA player");
 
         let mut input = String::new();
         io::stdin().read_line(&mut input).expect("Erreur lors de la lecture de l'entrée.");
@@ -290,7 +289,13 @@ impl Gameplay
             // Demandez si les players veulent rejouer
             println!("Voulez-vous rejouer ? (oui/non)");
             let mut input = String::new();
-            io::stdin().read_line(&mut input).expect("Erreur lors de la lecture de l'entrée.");
+
+            while (input.trim().to_lowercase() != "oui" && input.trim().to_lowercase() != "non")
+            {
+                input.clear();
+                io::stdin().read_line(&mut input).expect("Erreur lors de la lecture de l'entrée.");
+                println!("ici");
+            }
 
             if input.trim().to_lowercase() != "oui" 
             {

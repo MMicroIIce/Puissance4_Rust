@@ -3,6 +3,7 @@
  * TODO : 
  * - tout commenter
  * - faire de la gestion d'erreur
+ * - Simplifier, corriger, donner du sens (surtout d'un aspect modulable)
  * */
 
 

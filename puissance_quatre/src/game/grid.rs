@@ -86,10 +86,14 @@ impl Grid
         true // Le plateau est plein
     }
 
-    pub fn add_token(&mut self, player: char) -> Result<(), String> 
+    pub fn add_token(&mut self, player_token: char, nb: usize) -> Result<(), String> 
     {
-        // Demander au joueur dans quelle colonne placer le jeton
-        let colonne = self.ask_column();
+        let mut colonne = nb;
+        if player_token != 'W'
+        {
+            // Demander au joueur dans quelle colonne placer le jeton
+            colonne = self.ask_column();
+        }
 
         // Vérifiez que la colonne est valide
         if colonne >= self.grid[0].len() 
@@ -103,7 +107,7 @@ impl Grid
         {
             if self.grid[ligne][colonne] == ' ' 
             {
-                self.grid[ligne][colonne] = player;
+                self.grid[ligne][colonne] = player_token;
     
                 return Ok(()); // Ou vous pouvez renvoyer un autre résultat en fonction de vos besoins
             }

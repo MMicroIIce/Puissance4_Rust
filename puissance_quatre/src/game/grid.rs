@@ -1,4 +1,10 @@
-// src/game/grid.rs
+/* Module grid.rs
+ * 
+ * TODO : 
+ * - tout commenter
+ * - faire de la gestion d'erreur
+ * */
+
 
 use std::io;
 

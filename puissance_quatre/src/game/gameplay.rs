@@ -1,7 +1,14 @@
-
+/* Module gameplay.rs
+ * 
+ * TODO : 
+ * - faire un timer
+ * - Pour la possibilité de rejouer, fait en sorte qu'on soit obligé de mettre "non" et pas n'importe quoi
+ * - tout commenter
+ * - faire de la gestion d'erreur
+ * - faire en sorte que le pion de l'IA soit O et pas W
+ * */
 
 use std::io;
-use std::time::{Duration, Instant};
 
 use crate::game::grid::Grid;
 use crate::game::player::{LocalPlayer, IAPlayer, Player};
@@ -41,7 +48,6 @@ impl Gameplay
         }
     }
 
-    // TODO : problème, return LocalPlayer or tu as une IA aussi
     pub fn get_player(&self, player: CurrentPlayer) -> &LocalPlayer
     {
         match player {
@@ -51,7 +57,6 @@ impl Gameplay
 
     }
 
-    // TODO : problème, return LocalPlayer or tu as une IA aussi --> tu peux faire un get IA player si jamais tu trouves pas.
     pub fn get_player_mut(&mut self, player: CurrentPlayer) -> &mut LocalPlayer
     {
         match player {
@@ -116,8 +121,7 @@ impl Gameplay
         false // Aucune victoire détectée dans toutes les colonnes
     }
 
-    // TODO : faire attention aux dépassements du tableau, essayer sans indice ou mettre une gestion d'erreur à la fin si besoin.
-    // TODO : rajouter un com qui dit que Jouault a vu cette partie et est en accord avec celle ci
+    // Pour la fonction suivante, Mr. Jouault a approuvé l'utilisation des indices pour les itérations
     pub fn check_diagonal_victory(&self, player_token: char) -> bool 
     {
         let lignes = self.grid.grid.len();
@@ -192,12 +196,6 @@ impl Gameplay
     // Fonction principale pour jouer la partie
     pub fn play(&mut self) 
     {
-
-        let player_duration_max = Duration::new(30, 0);
-        let mut player_instant = Instant::now();
-
-        let mut instant_now;
-
         self.current_player = CurrentPlayer::Player1;
 
         let mut tokens_places_player1 = 0;
@@ -216,17 +214,11 @@ impl Gameplay
                     // L'ajout du token a réussi
                     Ok(_) => 
                     {
-                        instant_now = Instant::now();
                         if self.grid.ask_full() 
                         {
                             println!("Partie terminée. Match nul !");
                             break;
                         }
-
-                        let duration = instant_now.duration_since(player_instant);
-                        println!("Durée du joueur {} ce tour = {:?} secondes", self.get_player(self.current_player).name, duration);
-                        self.get_player_mut(self.current_player).timer = self.get_player(self.current_player).get_timer() + duration;
-                        println!("Durée du joueur {} au total = {:?} secondes", self.get_player(self.current_player).name, self.get_player(self.current_player).timer);
 
                         if self.get_player(self.current_player) == &self.player1 
                         {
@@ -242,11 +234,6 @@ impl Gameplay
                             }
                         }
 
-                        if self.get_player(self.current_player).timer >= player_duration_max {
-                            println!("Partie terminée. {} n'a plus de temps !", self.get_player(self.current_player).name);
-                            break; // Sortez de la boucle si la partie est terminée
-                        }
-
                         match game_mod
                         {
                             GameMod::LocalVsLocal =>
@@ -258,13 +245,10 @@ impl Gameplay
                                 {
                                     self.current_player = CurrentPlayer::Player1
                                 };
-                                player_instant = Instant::now();
                             }
 
                             GameMod::LocalVsIA =>
                             {
-                                player_instant = Instant::now();
-                                //TODO : bien contrôler le temps pour celui ci
                                 match self.grid.add_token(self.ia.get_token(), self.ia.make_random_move()) 
                                 {
                                     // L'ajout du token a réussi

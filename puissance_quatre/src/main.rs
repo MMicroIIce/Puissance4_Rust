@@ -1,7 +1,10 @@
-
-// TODO : uniformiser les commentaires dans tous les modules
-// TODO : pour chaque partie de code tu dois faire une gestion d'erreur
-// TODO : appliquer toutes les règles de Fred
+/* Module player.rs
+ * 
+ * TODO : 
+ * - répartir plus intelligemment les fonctions dans les modules
+ * - tout commenter
+ * - faire de la gestion d'erreur
+ * */
 
 mod game;
 
@@ -20,13 +23,10 @@ fn main() {
     println!();
     println!("Le nom du joueur 1 est : {}", player1.get_name());
     println!("Le jeton du joueur 1 est : {}", player1.get_token());
-    println!("Le timer du joueur 1 est initialisé à : {:?}", player1.get_timer());
     println!("Le nom du joueur 2 est : {}", player2.get_name());
     println!("Le jeton du joueur 2 est : {}", player2.get_token());
-    println!("Le timer du joueur 2 est initialisé à : {:?}", player2.get_timer());
-    println!("Le nom du joueur 2 est : {}", ia.get_name());
-    println!("Le jeton du joueur 2 est : {}", ia.get_token());
-    println!("Le timer du joueur 2 est initialisé à : {:?}", ia.get_timer());
+    println!("Le nom de l'IA est : {}", ia.get_name());
+    println!("Le jeton de l'IA est : {}", ia.get_token());
     println!();
 
     // Créez une instance de Partie en utilisant les joueurs et le plateau créés

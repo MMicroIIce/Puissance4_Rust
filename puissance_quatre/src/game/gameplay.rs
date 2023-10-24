@@ -1,7 +1,8 @@
 /* Module gameplay.rs
  * 
  * TODO : 
- * - faire un timer
+ * - ajouter le timer
+ * - faire une macro pour la durée du Timer par joueur.
  * - tout commenter
  * - faire de la gestion d'erreur
  * - Simplifier, corriger, donner du sens (surtout d'un aspect modulable)
@@ -11,6 +12,12 @@ use std::io;
 
 use crate::game::grid::Grid;
 use crate::game::player::{LocalPlayer, IAPlayer, Player};
+use crate::game::timer::{Timer, run_timer};
+
+use std::time::Instant;
+use std::time::Duration;
+use std::sync::{Arc, Mutex};
+use std::thread;
 
 pub enum GameMod {
     LocalVsLocal,
@@ -23,10 +30,12 @@ pub struct Gameplay
     pub player1: LocalPlayer,
     pub player2: LocalPlayer,
     pub ia: IAPlayer,
-    pub current_player: CurrentPlayer, // Utilisez une référence mutable pour suivre le player actuel
+    pub current_player: CurrentPlayer,
+    pub timer_player1: Arc<Mutex<Timer>>,
+    pub timer_player2: Arc<Mutex<Timer>>,
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, PartialEq)]
 pub enum CurrentPlayer
 {
     Player1,
@@ -35,7 +44,7 @@ pub enum CurrentPlayer
 
 impl Gameplay
 {
-    pub fn new_gameplay(grid: Grid, player1: LocalPlayer, player2: LocalPlayer, ia: IAPlayer) -> Self 
+    pub fn new_gameplay(grid: Grid, player1: LocalPlayer, player2: LocalPlayer, ia: IAPlayer, timer_player1: Timer, timer_player2: Timer) -> Self 
     {
         Gameplay 
         {
@@ -44,6 +53,8 @@ impl Gameplay
             player2,
             ia,
             current_player: CurrentPlayer::Player1, // Initialisez le player actuel avec player1
+            timer_player1: Arc::new(Mutex::new(timer_player1)),
+            timer_player2: Arc::new(Mutex::new(timer_player2)),
         }
     }
 
@@ -65,7 +76,7 @@ impl Gameplay
 
     }
 
-    pub fn check_line_victory(&self, player_token: char) -> bool 
+    fn check_line_victory(&self, player_token: char) -> bool 
     {
         // Vérifiez la séquence de tokens dans toutes les lignes
         for ligne in &self.grid.grid 
@@ -91,7 +102,7 @@ impl Gameplay
         false // Aucune victoire détectée dans toutes les lignes
     }
     
-    pub fn check_column_victory(&self, player_token: char) -> bool 
+    fn check_column_victory(&self, player_token: char) -> bool 
     {
         let colonnes = self.grid.grid[0].len();
     
@@ -121,7 +132,7 @@ impl Gameplay
     }
 
     // Pour la fonction suivante, Mr. Jouault a approuvé l'utilisation des indices pour les itérations
-    pub fn check_diagonal_victory(&self, player_token: char) -> bool 
+    fn check_diagonal_victory(&self, player_token: char) -> bool 
     {
         let lignes = self.grid.grid.len();
         let colonnes = self.grid.grid[0].len();
@@ -161,6 +172,19 @@ impl Gameplay
         false
     }
 
+    pub fn check_time(&self, player: CurrentPlayer, duration: Duration) -> bool {
+        let timer = match player {
+            CurrentPlayer::Player1 => &self.timer_player1,
+            CurrentPlayer::Player2 => &self.timer_player2,
+        };
+
+        if timer.lock().unwrap().elapsed_time() >= duration {
+            return true;
+        }
+
+        false
+    }
+
     // Fonction pour vérifier la victoire
     fn check_victory(&self, player_token: char) -> bool 
     {
@@ -189,7 +213,6 @@ impl Gameplay
                 Self::choose_mod()
             }
         }
-
     }
 
     // Fonction principale pour jouer la partie
@@ -197,14 +220,44 @@ impl Gameplay
     {
         self.current_player = CurrentPlayer::Player1;
 
+        let mut first_time = true;
+
+        let mut time_finish = false;
+
         let mut tokens_places_player1 = 0;
 
         let mut game_mod = Self::choose_mod();
+
+        // TODO : j'ai l'impression que le chrono commence avant, genre dès qu'on appelle choose_mod
+
+        // Clonez les chronomètres pour les passer aux threads
+        let timer_player1_clone = self.timer_player1.clone();
+        let timer_player2_clone = self.timer_player2.clone();
+
+        // Créez deux threads pour gérer les chronomètres
+        let timer_thread1 = thread::spawn({
+            let timer_player1_clone = timer_player1_clone.clone();
+            move || {
+                run_timer(timer_player1_clone);
+            }
+        });
+
+        timer_player1_clone.lock().unwrap().reset();
+        
+        let timer_thread2 = thread::spawn({
+            let timer_player2_clone = timer_player2_clone.clone();
+            move || {
+                run_timer(timer_player2_clone);
+            }
+        });
+        
         
         loop 
         {
-            while !Gameplay::check_victory(&self, self.get_player(self.current_player).get_token()) || !Gameplay::check_victory(&self, self.ia.get_token())
+            while (!Gameplay::check_victory(&self, self.get_player(self.current_player).get_token()) || !Gameplay::check_victory(&self, self.ia.get_token())) && time_finish == false
             {
+                // Enregistrez le moment où le tour du joueur commence
+                let turn_start = Instant::now();
                 println!("Tour de {}", self.get_player(self.current_player).name);
                 self.grid.display_grid();
 
@@ -239,7 +292,14 @@ impl Gameplay
                             {
                                 if self.get_player(self.current_player) == &self.player1 
                                 {
-                                    self.current_player = CurrentPlayer::Player2
+                                    self.current_player = CurrentPlayer::Player2;
+                                    
+                                    if first_time == true
+                                    {
+                                        timer_player2_clone.lock().unwrap().reset();
+                                        first_time = false;
+                                    }
+
                                 } else 
                                 {
                                     self.current_player = CurrentPlayer::Player1
@@ -284,17 +344,43 @@ impl Gameplay
                         println!("Erreur : {}", err);
                     }
                 }
+
+                // Enregistrez le moment où le tour du joueur se termine
+                let turn_end = Instant::now();
+
+                // Calculez la durée du tour
+                let turn_duration = turn_end - turn_start;
+
+                // Vérifiez le chronomètre du joueur actuel
+                if self.current_player == CurrentPlayer::Player1 {
+                    let player1_time = timer_player1_clone.lock().unwrap().elapsed_time();
+                    println!("Temps écoulé pour {}: {} seconds and {} nanoseconds", self.get_player(self.current_player).name, player1_time.as_secs(), player1_time.subsec_nanos());
+                    timer_player2_clone.lock().unwrap().subtract_time(turn_duration);
+                    if self.check_time(CurrentPlayer::Player1, Duration::from_secs(5)) {
+                        println!("Le joueur {} a dépassé le temps limite, il perd la partie.", self.get_player(self.current_player).name);
+                        // Ajoutez ici le code pour gérer la fin de la partie pour le joueur qui a dépassé le temps.
+                        time_finish = true;
+                    }
+                } else {
+                    let player2_time = timer_player2_clone.lock().unwrap().elapsed_time();
+                    println!("Temps écoulé pour {}: {} seconds and {} nanoseconds", self.get_player(self.current_player).name, player2_time.as_secs(), player2_time.subsec_nanos());
+                    timer_player1_clone.lock().unwrap().subtract_time(turn_duration);
+                    if self.check_time(CurrentPlayer::Player2, Duration::from_secs(5)) {
+                        println!("Le joueur {} a dépassé le temps limite, il perd la partie.", self.get_player(self.current_player).name);
+                        // Ajoutez ici le code pour gérer la fin de la partie pour le joueur qui a dépassé le temps.
+                        time_finish = true;
+                    }
+                }
             }
 
             // Demandez si les players veulent rejouer
             println!("Voulez-vous rejouer ? (oui/non)");
             let mut input = String::new();
 
-            while (input.trim().to_lowercase() != "oui" && input.trim().to_lowercase() != "non")
+            while input.trim().to_lowercase() != "oui" && input.trim().to_lowercase() != "non"
             {
                 input.clear();
                 io::stdin().read_line(&mut input).expect("Erreur lors de la lecture de l'entrée.");
-                println!("ici");
             }
 
             if input.trim().to_lowercase() != "oui" 
@@ -306,6 +392,15 @@ impl Gameplay
             tokens_places_player1 = 0;
 
             game_mod = Self::choose_mod();
+
+            timer_player1_clone.lock().unwrap().reset();
+
+            time_finish = false;
+            first_time = true;
         }
+
+        // Terminer le thread du timer lorsque le jeu est terminé
+        timer_thread1.join().unwrap();
+        timer_thread2.join().unwrap();
     }
 }

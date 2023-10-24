@@ -1,74 +1,66 @@
 /* Module grid.rs
  * 
+ * module du plateau de jeu
+ * 
  * TODO : 
- * - tout commenter
  * - faire de la gestion d'erreur
- * - Simplifier, corriger, donner du sens (surtout d'un aspect modulable)
- * */
-
+ * - appliquer consigne professeur
+ */
 
 use std::io;
 
 // Déclaration d'une structure nommée Grid
 pub struct Grid 
 {
-    pub grid: Vec<Vec<char>>,  // champ grid de type Vec<Vec<char>> donc un vecteur de vecteur de char
+    pub grid: Vec<Vec<char>>,
 }
 
 
 // Implémentation de méthodes pour la structure Grid
 impl Grid
 {
-    
-    // Méthode statique nommée nouveau
-    pub fn new_grid() -> Self 
-    {
-        
-        // Initialisation d'un plateau vide avec 6 lignes et 7 colonnes
-        let grid = vec![vec![' '; 7]; 6];  // Crée une grid 2D remplie de caractères ' '
-        Grid {grid}  // Crée une nouvelle instance de Grid avec la grid initialisée
-    
+    // Permet d'initialiser et instancier un nouveau plateau de jeu
+    pub fn new_grid() -> Self
+    {   
+        let grid = vec![vec![' '; 7]; 6];
+        Grid {grid}
     }
 
-    // Méthode pour afficher le plateau de jeu dans la console
-    pub fn display_grid(&self) 
+    // Permet d'afficher le plateau de jeu dans la console
+    pub fn display_grid(&self)
     {
         println!("Tableau : ");
         println!("-----------------------------");
-        for ligne in &self.grid 
+        for ligne in &self.grid
         {
-            for cellule in ligne 
+            for cellule in ligne
             {
                 print!("|");
                 print!(" {} ", cellule);
             }
             println!("|");
-            println!("-----------------------------"); // Nouvelle ligne après chaque ligne de la grid
+            println!("-----------------------------");
         }
     }
   
-    // Fonction pour demander à l'utilisateur dans quelle colonne placer le jeton
-    fn ask_column(&self) -> usize 
+    // Permet de demander à un joueur dans quelle colonne il souhaite placer un jeton
+    fn ask_column(&self) -> usize
     {
-        loop 
+        loop
         {
             println!("Dans quelle colonne souhaitez-vous placer votre jeton (0-{}):", self.grid[0].len() - 1);
 
+            // Les lignes suivantes permettant la lecture d'une entrée de l'utilisateur dans le terminal ont été écrites à l'aide d'une IA
             let mut input = String::new();
+            io::stdin().read_line(&mut input).expect("Échec de la lecture de l'entrée");
 
-            // Pour lire la ligne entrée par l'utilisateur, obtenu grâce à une IA
-            io::stdin()
-                .read_line(&mut input)
-                .expect("Échec de la lecture de l'entrée");
-
-            // Convertir l'entrée de l'utilisateur en un nombre, obtenu grâce à une IA
-            match input.trim().parse::<usize>() 
+            match input.trim().parse::<usize>()
             {
                 Ok(colonne) if colonne < self.grid[0].len() => 
                 {
                     return colonne;
                 }
-                _ => 
+                _ =>
                 {
                     println!("Colonne invalide. Veuillez choisir une colonne valide.");
                     continue;
@@ -77,61 +69,59 @@ impl Grid
         }
     }
 
-    // Méthode publique pour vérifier si le plateau est plein
-    pub fn ask_full(&self) -> bool 
+    // Permet de vérifier si le plateau de jeu est plein ou s'il reste une ou plusieurs cases vides
+    pub fn check_full(&self) -> bool
     {
         for ligne in &self.grid
         {
-            for cellule in ligne 
+            for cellule in ligne
             {
-                if *cellule == ' ' 
+                if *cellule == ' '
                 {
-                    return false; // Il y a au moins une case vide
+                    return false;
                 }
             }
         }
-        true // Le plateau est plein
+        true
     }
 
-    pub fn add_token(&mut self, player_token: char, nb: usize) -> Result<(), String> 
+    // Permet d'ajouter un jeton sur le plateau de jeu
+    pub fn add_token(&mut self, player_token: char, nb: usize) -> Result<(), String>
     {
         let mut colonne = nb;
+
+        //Si ce n'est pas l'IA
         if player_token != 'W'
         {
-            // Demander au joueur dans quelle colonne placer le jeton
             colonne = self.ask_column();
         }
 
-        // Vérifiez que la colonne est valide
-        if colonne >= self.grid[0].len() 
+        if colonne >= self.grid[0].len()
         {
             return Err(String::from("Colonne invalide"));
         }
-    
-        // TODO : vérifier si le for n'utilise pas d'indice
-        // Parcourez la colonne de bas en haut pour trouver la première case vide
-        for ligne in (0..self.grid.len()).rev() 
+
+        // Cherche la 1ère case vide de la colonne
+        for ligne in (0..self.grid.len()).rev()
         {
-            if self.grid[ligne][colonne] == ' ' 
+            if self.grid[ligne][colonne] == ' '
             {
                 self.grid[ligne][colonne] = player_token;
-    
-                return Ok(()); // Ou vous pouvez renvoyer un autre résultat en fonction de vos besoins
+                return Ok(());
             }
         }
     
-        // Si la colonne est pleine, renvoyez une erreur
         Err(String::from("Colonne pleine"))
     }
 
-    // Méthode pour vider le plateau et remettre des cases vides
+    // Permet d'enlever tous les jetons du plateau de jeu
     pub fn empty_grid(&mut self) 
     {
-        for ligne in &mut self.grid 
+        for ligne in &mut self.grid
         {
-            for cellule in ligne 
+            for cellule in ligne
             {
-                *cellule = ' '; // Réinitialisez chaque cellule avec un espace
+                *cellule = ' ';
             }
         }
     }

@@ -17,10 +17,7 @@ fn main() {
     // Créez deux joueurs
     let player1 = game::player::LocalPlayer::new_local_player("Joueur 1".to_string(), 'X');
     let player2 = game::player::LocalPlayer::new_local_player("Joueur 2".to_string(), 'O');
-    let ia = game::player::IAPlayer::new_ia_player("IA".to_string(), 'O');
-
-    let timer_player1 = game::timer::Timer::new_timer();
-    let timer_player2 = game::timer::Timer::new_timer();
+    let ia = game::player::IAPlayer::new_ia_player("IA".to_string(), 'W');
 
     println!();
     println!("Le nom du joueur 1 est : {}", player1.get_name());
@@ -32,7 +29,7 @@ fn main() {
     println!();
 
     // Créez une instance de Partie en utilisant les joueurs et le plateau créés
-    let mut gameplay = game::gameplay::Gameplay::new_gameplay(grid, player1, player2, ia, timer_player1, timer_player2);
+    let mut gameplay = game::gameplay::Gameplay::new_gameplay(grid, player1, player2, ia);
 
     // Commencez à jouer la partie
     gameplay.play();

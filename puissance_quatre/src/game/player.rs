@@ -1,10 +1,9 @@
-/* Module player.rs
+/* 
+ * game/player.rs
  * 
- * TODO : 
- * - tout commenter
- * - faire de la gestion d'erreur
- * - Simplifier, corriger, donner du sens (surtout d'un aspect modulable)
- * */
+ * module du joueur
+ * 
+ */
 
 use rand::Rng;
 
@@ -17,96 +16,101 @@ pub trait Player
 
 // Déclaration d'une structure nommée Player
 #[derive(PartialEq)] // Permettra de comparer 2 instances de la structure LocalPlayer. Trouvé grâce à une IA.
-pub struct LocalPlayer 
+pub struct LocalPlayer
 {
     pub name: String,
     pub token: char,
 }
 
 // Déclaration d'une structure nommée IAPlayer
-pub struct IAPlayer {
+pub struct IAPlayer
+{
     pub name: String,
     pub token: char,
 }
 
 // Déclaration d'une structure nommée IAPlayer
-pub struct OnlinePlayer {
+pub struct OnlinePlayer
+{
     pub name: String,
     pub token: char,
 }
 
-// Implémentation de méthodes pour la structure Player
-impl LocalPlayer 
+// Implémentation de méthodes pour la structure LocalPlayer
+impl LocalPlayer
 {
-    // Constructeur pour créer un nouveau joueur
-    pub fn new_local_player(name: String, token: char) -> Self 
+    // Permet d'initialiser et d'instancier un nouveau joueur local
+    pub fn new_local_player(name: String, token: char) -> Self
     {
-        return LocalPlayer {name, token};
+        LocalPlayer {name, token}
     }
 }
 
-impl IAPlayer {
-    // Constructeur pour créer un nouveau joueur IA
-    pub fn new_ia_player(name: String, token: char) -> Self 
+// Implémentation de méthodes pour la structure IAPlayer
+impl IAPlayer
+{
+    // Permet d'initialiser et d'instancier un nouveau joueur IA
+    pub fn new_ia_player(name: String, token: char) -> Self
     {
         IAPlayer {name, token}
     }
 
-    // Fonction pour effectuer un coup au hasard
-    pub fn make_random_move(&self) -> usize 
+    // Permet de générer un nombre aléatoire entre 0 et 6 correspondant au nombre d'une colonne
+    pub fn make_random_move(&self) -> usize
     {
-        // Générez un nombre aléatoire entre 0 et 6 (ou la taille de votre grille - 1)
         let mut rng = rand::thread_rng();
-        rng.gen_range(0..7) // Cela générera un nombre aléatoire entre 0 et 6 inclus
+        rng.gen_range(0..7)
     }
 }
 
-// Implémentation de méthodes pour la structure Player
+// Implémentation de méthodes pour la structure OnlinePlayer
 impl OnlinePlayer 
 {
-    // Constructeur pour créer un nouveau joueur
-    pub fn new_online_player(name: String, token: char) -> Self 
+    // Permet d'initialiser et d'instancier un nouveau joueur online
+    pub fn new_online_player(name: String, token: char) -> Self
     {
-        return OnlinePlayer {name, token};
+        OnlinePlayer {name, token}
     }
 }
 
-// Implémentation du trait PlayerTrait pour la structure Player
-impl Player for LocalPlayer 
+// Implémentation du trait Player pour la structure LocalPlayer
+impl Player for LocalPlayer
 {
-    fn get_name(&self) -> &str 
+    fn get_name(&self) -> &str
     {
         &self.name
     }
 
-    fn get_token(&self) -> char 
+    fn get_token(&self) -> char
     {
         self.token
     }
 }
 
-impl Player for IAPlayer {
-    fn get_name(&self) -> &str 
+// Implémentation du trait Player pour la structure IAPlayer
+impl Player for IAPlayer
+{
+    fn get_name(&self) -> &str
     {
         &self.name
     }
 
-    fn get_token(&self) -> char 
+    fn get_token(&self) -> char
     {
         self.token
     }
 }
 
-impl Player for OnlinePlayer {
-    fn get_name(&self) -> &str 
+// Implémentation du trait Player pour la structure OnlinePlayer
+impl Player for OnlinePlayer
+{
+    fn get_name(&self) -> &str
     {
         &self.name
     }
 
-    fn get_token(&self) -> char 
+    fn get_token(&self) -> char
     {
         self.token
     }
 }
-
-

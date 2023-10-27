@@ -1,10 +1,8 @@
-/* Module grid.rs
+/* 
+ * game/grid.rs
  * 
  * module du plateau de jeu
  * 
- * TODO : 
- * - faire de la gestion d'erreur
- * - appliquer consigne professeur
  */
 
 use std::io;
@@ -50,10 +48,10 @@ impl Grid
         {
             println!("Dans quelle colonne souhaitez-vous placer votre jeton (0-{}):", self.grid[0].len() - 1);
 
-            // Les lignes suivantes permettant la lecture d'une entrée de l'utilisateur dans le terminal ont été écrites à l'aide d'une IA
             let mut input = String::new();
             io::stdin().read_line(&mut input).expect("Échec de la lecture de l'entrée");
 
+            // La ligne suivante a été obtenue à l'aide d'une IA
             match input.trim().parse::<usize>()
             {
                 Ok(colonne) if colonne < self.grid[0].len() => 

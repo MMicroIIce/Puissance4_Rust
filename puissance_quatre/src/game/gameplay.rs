@@ -1,10 +1,9 @@
-/* Module gameplay.rs
+/* 
+ * game/player.rs
  * 
- * TODO : 
- * - tout commenter
- * - faire de la gestion d'erreur
- * - raccourcir la fonction play au max, histoire de pas faire de répétition
- * */
+ * module du gameplay
+ * 
+ */
 
 use std::io;
 use std::thread;
@@ -14,12 +13,7 @@ use std::time::Duration;
 use crate::game::grid::Grid;
 use crate::game::player::{LocalPlayer, IAPlayer, Player};
 
-pub enum GameMod
-{
-    LocalVsLocal,
-    LocalVsIA,
-}
-
+// Déclaration d'une structure nommée Gameplay
 pub struct Gameplay
 {
     pub grid: Grid,
@@ -27,9 +21,16 @@ pub struct Gameplay
     pub player2: LocalPlayer,
     pub ia: IAPlayer,
     pub current_player: CurrentPlayer,
-    //pub grid_mutex: Arc<Mutex<Grid>>,
 }
 
+// Déclaration d'une énumération nommée GameMod, correspondant au mode de jeu choisi par le joueur
+pub enum GameMod
+{
+    LocalVsLocal,
+    LocalVsIA,
+}
+
+// Déclaration d'une énumération nommée CurrentPlayer, indiquant si nous sommes au tour du joueur 1 ou au tour du joueur 2 lors d'une partie locale
 #[derive(Copy, Clone, PartialEq)]
 pub enum CurrentPlayer
 {
@@ -37,21 +38,10 @@ pub enum CurrentPlayer
     Player2,
 }
 
+// Implémentation de méthodes pour la structure Gameplay
 impl Gameplay
 {
-    // pub fn new_gameplay(grid: Grid, player1: LocalPlayer, player2: LocalPlayer, ia: IAPlayer, grid_mutex: Arc<Mutex<Grid>>) -> Self
-    // {
-    //     Gameplay
-    //     {
-    //         grid,
-    //         player1,
-    //         player2,
-    //         ia,
-    //         current_player: CurrentPlayer::Player1,
-    //         grid_mutex,
-    //     }
-    // }
-
+    // Permet d'initialiser et instancier un nouveau gameplay
     pub fn new_gameplay(grid: Grid, player1: LocalPlayer, player2: LocalPlayer, ia: IAPlayer) -> Self
     {
         Gameplay
@@ -61,10 +51,10 @@ impl Gameplay
             player2,
             ia,
             current_player: CurrentPlayer::Player1,
-            //grid_mutex,
         }
     }
 
+    // Permet de retourner le joueur qui possède le tour
     pub fn get_player(&self, player: CurrentPlayer) -> &LocalPlayer
     {
         match player
@@ -74,18 +64,10 @@ impl Gameplay
         }
     }
 
-    pub fn get_player_mut(&mut self, player: CurrentPlayer) -> &mut LocalPlayer
-    {
-        match player
-        {
-            CurrentPlayer::Player1 => &mut self.player1,
-            CurrentPlayer::Player2 => &mut self.player2,
-        }
-    }
-
+    // Permet de détecter une victoire sur les lignes de la grille s'il y en a une
     fn check_line_victory(&self, player_token: char) -> bool
     {
-        // Vérifiez la séquence de tokens dans toutes les lignes
+        // Vérifie la séquence de pions dans toutes les lignes
         for ligne in &self.grid.grid
         {
             let mut count = 0;
@@ -96,23 +78,24 @@ impl Gameplay
                     count += 1;
                     if count == 4
                     {
-                        return true; // Victoire détectée dans cette ligne
+                        return true; // Victoire détectée
                     }
                 }
                 else
                 {
-                    count = 0; // Réinitialisez le compteur si une cellule différente est rencontrée
+                    count = 0;
                 }
             }
         }
-        false // Aucune victoire détectée dans toutes les lignes
+        false // Aucune victoire détectée
     }
     
+    // Permet de détecter une victoire sur les colonnes de la grille s'il y en a une
     fn check_column_victory(&self, player_token: char) -> bool
     {
         let colonnes = self.grid.grid[0].len();
     
-        // Parcourez toutes les colonnes pour vérifier s'il y a 4 tokens consécutifs du player spécifié
+        // Vérifie la séquence de pions dans toutes les colonnes
         for colonne in 0..colonnes
         {
             let mut count = 0;
@@ -124,18 +107,19 @@ impl Gameplay
                     count += 1;
                     if count == 4
                     {
-                        return true; // Victoire détectée dans cette colonne
+                        return true; // Victoire détectée
                     }
                 }
                 else
                 {
-                    count = 0; // Réinitialisez le compteur si une cellule différente est rencontrée
+                    count = 0;
                 }
             }
         }
-        false // Aucune victoire détectée dans toutes les colonnes
+        false // Aucune victoire détectée
     }
 
+    // Permet de détecter une victoire sur les diagonales de la grille s'il y en a une
     // Pour la fonction suivante, Mr. Jouault a approuvé l'utilisation des indices pour les itérations
     fn check_diagonal_victory(&self, player_token: char) -> bool
     {
@@ -167,7 +151,7 @@ impl Gameplay
                 }
             }
         }
-        false
+        false // Aucune victoire détectée
     }
 
     // Fonction pour vérifier la victoire
@@ -177,12 +161,12 @@ impl Gameplay
         Gameplay::check_line_victory(self, player_token) || Gameplay::check_column_victory(self, player_token) || Gameplay::check_column_victory(self, player_token) || Gameplay::check_diagonal_victory(self, player_token)
     }
 
+    // Permet au joueur de choisir un mode de jeu, en entrant son choix dans le terminal
     fn choose_mod() -> GameMod
     {
         println!("Choisissez un mode de jeu :");
         println!("Ecrivez 'local' pour une partie Local player vs Local player");
         println!("Ecrivez 'ia' pour une partie Local player vs IA player");
-
         let mut input = String::new();
         io::stdin().read_line(&mut input).expect("Erreur lors de la lecture de l'entrée.");
         let choice = input.trim().to_lowercase();
@@ -198,59 +182,34 @@ impl Gameplay
         }
     }
 
-    // // Fonction lancée par le thread
-    // fn thread_random_move(grid_mutex: Arc<Mutex<Grid>>) {
-    //     thread::spawn(move || {
-    //         loop {
-    //             thread::sleep(Duration::from_secs(10));
-
-    //             let mut rng = rand::thread_rng();
-    //             rng.gen_range(0..7)
-
-    //             let mut rng = rand::thread_rng();
-    //             let random_token: char = if rng.gen::<bool>() {'X'} else {'O'}; //Trouvé à l'aide d'une IA.
-
-    //             match grid_mutex.lock()
-    //             {
-    //                 Ok(mut grid) =>
-    //                 {
-    //                     match grid.add_token(random_token, rng)
-    //                     {
-    //                         Ok(_) => {},
-    //                         Err(err) =>
-    //                         {
-    //                             println!("Erreur : {}", err);
-    //                         },
-    //                     }
-    //                 },
-    //                 Err(poisoned) =>
-    //                 {
-    //                     println!("Erreur lors du verrouillage du mutex : {:?}", poisoned);
-    //                 },
-    //             }
-    //         }
-    //     });
-    // }
-
-    // Fonction principale pour jouer la partie
+    // Permet de jouer une partie
     pub fn play(&mut self)
     {
         loop
         {
-            self.current_player = CurrentPlayer::Player1;
-            let mut first_time = true;
-            let mut tokens_places_player1 = 0;
-            let mut game_mod = Self::choose_mod();
+            // Minuterie lancé dans un thread séparé, utilisant un Mutex pour suivre et contrôler le délai d'une partie.
+            let time_limit = Arc::new(Mutex::new(false));
+            let time_limit_clone = Arc::clone(&time_limit);
 
-            // if game_mod == GameMod::LocalVsLocal
-            // {
-            //     // Créez un Mutex pour la grille
-            //     let grid_mutex = Arc::new(Mutex::new(self.grid.clone()));
-            //     // Démarrez le thread du timer
-            //     Gameplay::timer_thread(Arc::clone(&grid_mutex));
-            // }       
+            let time_limit_thread_handle = thread::spawn(move || {
+                thread::sleep(Duration::from_secs(5)); // Pour définir le temps limite d'une partie, ici 120 secondes
+                // let mut time_limit = time_limit_clone.lock().unwrap();
+                let mut time_limit = match time_limit_clone.lock() {
+                    Ok(guard) => guard,
+                    Err(err) => {
+                        println!("Erreur lors de la récupération du verrou : {}", err);
+                        std::process::exit(1); // on quitte le programme
+                    }
+                };
+                *time_limit = true;
+            });
+
+            self.current_player = CurrentPlayer::Player1;
+            let mut _first_time = true;
+            let mut tokens_places_player1 = 0;
+            let game_mod = Self::choose_mod();      
             
-            while !Gameplay::check_victory(&self, self.get_player(self.current_player).get_token()) || !Gameplay::check_victory(&self, self.ia.get_token())
+            while (!Gameplay::check_victory(&self, self.get_player(self.current_player).get_token()) || !Gameplay::check_victory(&self, self.ia.get_token())) && !*time_limit.lock().unwrap()
             {
                 println!("Tour de {}", self.get_player(self.current_player).name);
                 self.grid.display_grid();
@@ -279,18 +238,20 @@ impl Gameplay
                         }
                         match game_mod
                         {
+                            // Si le mode de jeu est LocalVsLocal, on change le joueur actuel
                             GameMod::LocalVsLocal =>
                             {
                                 if self.get_player(self.current_player) == &self.player1
                                 {
                                     self.current_player = CurrentPlayer::Player2;
-                                    first_time = false;
+                                    _first_time = false;
                                 }
                                 else
                                 {
                                     self.current_player = CurrentPlayer::Player1
                                 };
                             }
+                            // Si le mode de jeu est LocalVsIA, le joueur actuel reste le joueur 1 et l'IA place un pion
                             GameMod::LocalVsIA =>
                             {
                                 match self.grid.add_token(self.ia.get_token(), self.ia.make_random_move())
@@ -313,23 +274,37 @@ impl Gameplay
                                             }
                                         }
                                     }
-                                    // L'ajout du token a échoué, affichez un message d'erreur
+                                    // L'ajout du token a échoué
                                     Err(err) =>
                                     {
-                                        println!("Erreur : {}", err);
+                                        println!("Erreur pour l'ajout du token : {}", err);
                                     }
                                 }
                             }
                         }
                     }
-                    // L'ajout du token a échoué, affichez un message d'erreur
+                    // L'ajout du token a échoué
                     Err(err) =>
                     {
-                        println!("Erreur : {}", err);
+                        println!("Erreur pour l'ajout du token : {}", err);
                     }
                 }
             }
-            // Demandez si les players veulent rejouer
+            // if *time_limit.lock().unwrap() {
+            //     println!("Le temps limite à été atteint, la partie est terminée. Match nul !");
+            // }
+            if let Ok(guard) = time_limit.lock() {
+                if *guard {
+                    println!("Le temps limite à été atteint, la partie est terminée. Match nul !");
+                }
+            } else {
+                println!("Erreur lors de la récupération du verrou pour le temps limite");
+                time_limit_thread_handle.join().expect("Le thread de minuterie a échoué");
+                std::process::exit(1); // quitte le programme
+            }
+            
+
+            // Demandez si les joueurs veulent rejouer
             println!("Voulez-vous rejouer ? (oui/non)");
             let mut input = String::new();
             while input.trim().to_lowercase() != "oui" && input.trim().to_lowercase() != "non"
@@ -341,7 +316,9 @@ impl Gameplay
             {
                 break;
             }
-            self.grid.empty_grid();
+            self.grid.empty_grid(); //On vide la grille
+
+            time_limit_thread_handle.join().expect("Le thread de minuterie a échoué");
         }
     }
 }

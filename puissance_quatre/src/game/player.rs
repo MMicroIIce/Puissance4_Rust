@@ -15,7 +15,7 @@ pub trait Player
 }
 
 // Déclaration d'une structure nommée Player
-#[derive(PartialEq)] // Permettra de comparer 2 instances de la structure LocalPlayer. Trouvé grâce à une IA.
+#[derive(PartialEq)] // Permettra de comparer 2 instances de la structure LocalPlayer.
 pub struct LocalPlayer
 {
     pub name: String,
@@ -24,13 +24,6 @@ pub struct LocalPlayer
 
 // Déclaration d'une structure nommée IAPlayer
 pub struct IAPlayer
-{
-    pub name: String,
-    pub token: char,
-}
-
-// Déclaration d'une structure nommée IAPlayer
-pub struct OnlinePlayer
 {
     pub name: String,
     pub token: char,
@@ -63,16 +56,6 @@ impl IAPlayer
     }
 }
 
-// Implémentation de méthodes pour la structure OnlinePlayer
-impl OnlinePlayer 
-{
-    // Permet d'initialiser et d'instancier un nouveau joueur online
-    pub fn new_online_player(name: String, token: char) -> Self
-    {
-        OnlinePlayer {name, token}
-    }
-}
-
 // Implémentation du trait Player pour la structure LocalPlayer
 impl Player for LocalPlayer
 {
@@ -89,20 +72,6 @@ impl Player for LocalPlayer
 
 // Implémentation du trait Player pour la structure IAPlayer
 impl Player for IAPlayer
-{
-    fn get_name(&self) -> &str
-    {
-        &self.name
-    }
-
-    fn get_token(&self) -> char
-    {
-        self.token
-    }
-}
-
-// Implémentation du trait Player pour la structure OnlinePlayer
-impl Player for OnlinePlayer
 {
     fn get_name(&self) -> &str
     {

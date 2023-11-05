@@ -176,7 +176,7 @@ impl Gameplay
             "ia" => GameMod::LocalVsIA,
             _ =>
             {
-                println!("Choix invalide, choisissez à nouveau.");
+                println!("Choix de mode invalide, choisissez à nouveau.");
                 Self::choose_mod()
             }
         }
@@ -191,12 +191,14 @@ impl Gameplay
             let time_limit = Arc::new(Mutex::new(false));
             let time_limit_clone = Arc::clone(&time_limit);
 
-            let time_limit_thread_handle = thread::spawn(move || {
-                thread::sleep(Duration::from_secs(5)); // Pour définir le temps limite d'une partie, ici 120 secondes
-                // let mut time_limit = time_limit_clone.lock().unwrap();
-                let mut time_limit = match time_limit_clone.lock() {
+            let time_limit_thread_handle = thread::spawn(move || 
+            {
+                thread::sleep(Duration::from_secs(120)); // Pour définir le temps limite d'une partie, ici 120 secondes
+                let mut time_limit = match time_limit_clone.lock()
+                {
                     Ok(guard) => guard,
-                    Err(err) => {
+                    Err(err) =>
+                    {
                         println!("Erreur lors de la récupération du verrou : {}", err);
                         std::process::exit(1); // on quitte le programme
                     }
@@ -290,14 +292,15 @@ impl Gameplay
                     }
                 }
             }
-            // if *time_limit.lock().unwrap() {
-            //     println!("Le temps limite à été atteint, la partie est terminée. Match nul !");
-            // }
-            if let Ok(guard) = time_limit.lock() {
-                if *guard {
+            if let Ok(guard) = time_limit.lock()
+            {
+                if *guard
+                {
                     println!("Le temps limite à été atteint, la partie est terminée. Match nul !");
                 }
-            } else {
+            }
+            else
+            {
                 println!("Erreur lors de la récupération du verrou pour le temps limite");
                 time_limit_thread_handle.join().expect("Le thread de minuterie a échoué");
                 std::process::exit(1); // quitte le programme

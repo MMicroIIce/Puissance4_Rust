@@ -3,6 +3,8 @@
  * 
  * module du gameplay
  * 
+ * La gestion d'erreur local dans ce module a été obtenue après recherches sur plusieurs sites (pour trouver une méthode fonctionnel dans notre cas), et à l'aide d'une IA.
+ * 
  */
 
 use std::io;
@@ -187,13 +189,42 @@ impl Gameplay
     {
         loop
         {
+            self.current_player = CurrentPlayer::Player1;
+            let mut _first_time = true;
+            let mut tokens_places_player1 = 0;
+            let game_mod = Self::choose_mod(); // le joueur choisit le mode de jeu
+
+            // Utilisation d'un mutex pour sortir du thread séparé dans le cas où la partie est terminée avant la fin du minuteur
+            let gameplay_finish = Arc::new(Mutex::new(false));
+            let gameplay_finish_clone = Arc::clone(&gameplay_finish);
+
             // Minuterie lancé dans un thread séparé, utilisant un Mutex pour suivre et contrôler le délai d'une partie.
             let time_limit = Arc::new(Mutex::new(false));
             let time_limit_clone = Arc::clone(&time_limit);
 
             let time_limit_thread_handle = thread::spawn(move || 
             {
-                thread::sleep(Duration::from_secs(120)); // Pour définir le temps limite d'une partie, ici 120 secondes
+                let mut count = 0;
+                
+                while count < 5 // Pour définir le temps limite d'une partie, ici 120 secondes
+                {
+                    thread::sleep(Duration::from_secs(1));
+                    count += 1;
+                    let gameplay_finish = match gameplay_finish_clone.lock()
+                    {
+                        Ok(guard) => guard,
+                        Err(err) =>
+                        {
+                            println!("Erreur lors de la récupération du verrou : {}", err);
+                            std::process::exit(1); // on quitte le programme
+                        }
+                    };
+                    if *gameplay_finish
+                    {
+                        return; // la partie est terminée, on sort de la fonction
+                    }
+                }
+
                 let mut time_limit = match time_limit_clone.lock()
                 {
                     Ok(guard) => guard,
@@ -204,12 +235,7 @@ impl Gameplay
                     }
                 };
                 *time_limit = true;
-            });
-
-            self.current_player = CurrentPlayer::Player1;
-            let mut _first_time = true;
-            let mut tokens_places_player1 = 0;
-            let game_mod = Self::choose_mod();      
+            }); 
             
             while (!Gameplay::check_victory(&self, self.get_player(self.current_player).get_token()) || !Gameplay::check_victory(&self, self.ia.get_token())) && !*time_limit.lock().unwrap()
             {
@@ -235,7 +261,16 @@ impl Gameplay
                             {
                                 self.grid.display_grid();
                                 println!("Partie terminée. {} a gagné !", self.get_player(self.current_player).name);
-                                break;
+                                if let Ok(mut gameplay_finish) = gameplay_finish.lock()
+                                {
+                                    *gameplay_finish = true; // Pour sortir du minuteur
+                                    break;
+                                }
+                                else
+                                {
+                                    println!("Erreur lors du verrouillage pour terminer la partie");
+                                    break;
+                                }
                             }
                         }
                         match game_mod
@@ -264,7 +299,16 @@ impl Gameplay
                                         if self.grid.check_full()
                                         {
                                             println!("Partie terminée. Match nul !");
-                                            break;
+                                            if let Ok(mut gameplay_finish) = gameplay_finish.lock()
+                                            {
+                                                *gameplay_finish = true; // Pour sortir du minuteur
+                                                break;
+                                            }
+                                            else
+                                            {
+                                                println!("Erreur lors du verrouillage pour terminer la partie");
+                                                break;
+                                            }
                                         }
                                         if tokens_places_player1 >= 4
                                         {
@@ -272,7 +316,16 @@ impl Gameplay
                                             {
                                                 self.grid.display_grid();
                                                 println!("Partie terminée. IA a gagné !");
-                                                break;
+                                                if let Ok(mut gameplay_finish) = gameplay_finish.lock()
+                                                {
+                                                    *gameplay_finish = true; // Pour sortir du minuteur
+                                                    break;
+                                                }
+                                                else
+                                                {
+                                                    println!("Erreur lors du verrouillage pour terminer la partie");
+                                                    break;
+                                                }
                                             }
                                         }
                                     }
@@ -292,17 +345,25 @@ impl Gameplay
                     }
                 }
             }
+
             if let Ok(guard) = time_limit.lock()
             {
-                if *guard
+                if let Ok(gameplay_finish) = gameplay_finish.lock()
                 {
-                    println!("Le temps limite à été atteint, la partie est terminée. Match nul !");
+                    if !*gameplay_finish && *guard
+                    {
+                        println!("Le temps limite a été atteint, la partie est terminée. Match nul !");
+                    }
+                }
+                else 
+                {
+                    println!("Erreur lors de la récupération du verrou pour le gameplay_finish");
+                    std::process::exit(1); // quitte le programme
                 }
             }
             else
             {
                 println!("Erreur lors de la récupération du verrou pour le temps limite");
-                time_limit_thread_handle.join().expect("Le thread de minuterie a échoué");
                 std::process::exit(1); // quitte le programme
             }
             
@@ -321,7 +382,10 @@ impl Gameplay
             }
             self.grid.empty_grid(); //On vide la grille
 
-            time_limit_thread_handle.join().expect("Le thread de minuterie a échoué");
+            if let Err(err) = time_limit_thread_handle.join() // On attend la fin du thread gérant le minuteur
+            {
+                eprintln!("Le thread de minuterie a échoué : {:?}", err);
+            }
         }
     }
 }

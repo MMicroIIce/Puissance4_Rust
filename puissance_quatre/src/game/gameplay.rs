@@ -163,23 +163,30 @@ impl Gameplay
         Gameplay::check_line_victory(self, player_token) || Gameplay::check_column_victory(self, player_token) || Gameplay::check_column_victory(self, player_token) || Gameplay::check_diagonal_victory(self, player_token)
     }
 
-    // Permet au joueur de choisir un mode de jeu, en entrant son choix dans le terminal
     fn choose_mod() -> GameMod
     {
-        println!("Choisissez un mode de jeu :");
-        println!("Ecrivez 'local' pour une partie Local player vs Local player");
-        println!("Ecrivez 'ia' pour une partie Local player vs IA player");
-        let mut input = String::new();
-        io::stdin().read_line(&mut input).expect("Erreur lors de la lecture de l'entrée.");
-        let choice = input.trim().to_lowercase();
-        match choice.as_str()
+        loop
         {
-            "local" => GameMod::LocalVsLocal,
-            "ia" => GameMod::LocalVsIA,
-            _ =>
+            println!("Choisissez un mode de jeu :");
+            println!("Ecrivez 'local' pour une partie Local player vs Local player");
+            println!("Ecrivez 'ia' pour une partie Local player vs IA player");
+
+            let mut input = String::new();
+            if let Err(err) = io::stdin().read_line(&mut input)
             {
-                println!("Choix de mode invalide, choisissez à nouveau.");
-                Self::choose_mod()
+                eprintln!("Erreur lors de la lecture de l'entrée : {}", err);
+                continue;
+            }
+    
+            let choice = input.trim().to_lowercase();
+            match choice.as_str()
+            {
+                "local" => return GameMod::LocalVsLocal,
+                "ia" => return GameMod::LocalVsIA,
+                _ =>
+                {
+                    println!("Choix de mode invalide, choisissez à nouveau.");
+                }
             }
         }
     }
@@ -374,7 +381,10 @@ impl Gameplay
             while input.trim().to_lowercase() != "oui" && input.trim().to_lowercase() != "non"
             {
                 input.clear();
-                io::stdin().read_line(&mut input).expect("Erreur lors de la lecture de l'entrée.");
+                if let Err(err) = io::stdin().read_line(&mut input)
+                {
+                    eprintln!("Erreur lors de la lecture de l'entrée : {}", err);
+                }
             }
             if input.trim().to_lowercase() == "non"
             {

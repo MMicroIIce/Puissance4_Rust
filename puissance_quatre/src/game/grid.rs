@@ -6,7 +6,6 @@
  */
 
 use std::io;
-use std::io::Write;
 
 // Déclaration d'une structure nommée Grid
 pub struct Grid 
@@ -49,7 +48,6 @@ impl Grid
         {
             println!("Dans quelle colonne souhaitez-vous placer votre jeton (0-{}):", self.grid[0].len() - 1);
             
-            io::stdout().flush().ok(); // Pour s'assurer que le message s'affiche sans retard, trouvé à l'aide d'une IA
             let mut input = String::new();
             if let Err(_) = io::stdin().read_line(&mut input)
             {
